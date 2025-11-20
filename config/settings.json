@@ -1,0 +1,9 @@
+{
+  "database": {
+    "user": "admin",
+    "password": "Zayrus189918143",
+    "dsn": "basedatos699_medium",
+    "wallet_dir": "C:\\Users\\Walther\\Desktop\\proyectoPyQt6\\Wallet",
+    "wallet_password": "Zayrus189918143"
+  }
+}

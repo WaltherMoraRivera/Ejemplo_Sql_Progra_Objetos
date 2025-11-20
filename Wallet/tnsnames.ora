@@ -1,0 +1,12 @@
+basedatos699_high = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.sa-santiago-1.oraclecloud.com))(connect_data=(service_name=gfc9bdd79e6427f_basedatos699_high.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+basedatos699_low = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.sa-santiago-1.oraclecloud.com))(connect_data=(service_name=gfc9bdd79e6427f_basedatos699_low.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+basedatos699_medium = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.sa-santiago-1.oraclecloud.com))(connect_data=(service_name=gfc9bdd79e6427f_basedatos699_medium.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+basedatos699_tp = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.sa-santiago-1.oraclecloud.com))(connect_data=(service_name=gfc9bdd79e6427f_basedatos699_tp.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+basedatos699_tpurgent = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.sa-santiago-1.oraclecloud.com))(connect_data=(service_name=gfc9bdd79e6427f_basedatos699_tpurgent.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+
+
