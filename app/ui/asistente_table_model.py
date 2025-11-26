@@ -1,35 +1,36 @@
-"""Qt table model for Cliente data."""
+"""Qt table model for Asistente data."""
 from __future__ import annotations
 
 from typing import List, Sequence, Set
 
 from PyQt6.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
 
-from app.domain.models.cliente import Cliente
+from app.domain.models.asistente import Asistente
 
 
-class ClienteTableModel(QAbstractTableModel):
-    """Model that adapts Cliente objects to a QTableView."""
+class AsistenteTableModel(QAbstractTableModel):
+    """Model that adapts Asistente objects to a QTableView."""
 
     HEADERS: Sequence[str] = (
         "Seleccionar",
-        "RUT",
         "Nombre",
-        "Apellido",
-        "Email",
+        "Correo",
         "Teléfono",
+        "Edad",
+        "Ciudad",
+        "Tipo",
         "Detalle",
     )
     SELECT_COLUMN = 0
     ACTION_COLUMN = len(HEADERS) - 1
 
-    def __init__(self, clientes: List[Cliente] | None = None) -> None:
+    def __init__(self, asistentes: List[Asistente] | None = None) -> None:
         super().__init__()
-        self._clientes: List[Cliente] = clientes or []
+        self._asistentes: List[Asistente] = asistentes or []
         self._selected_ids: Set[int] = set()
 
     def rowCount(self, parent: QModelIndex | None = None) -> int:  # noqa: N802
-        return len(self._clientes)
+        return len(self._asistentes)
 
     def columnCount(self, parent: QModelIndex | None = None) -> int:  # noqa: N802
         return len(self.HEADERS)
@@ -38,25 +39,26 @@ class ClienteTableModel(QAbstractTableModel):
         if not index.isValid():
             return QVariant()
 
-        cliente = self._clientes[index.row()]
+        asistente = self._asistentes[index.row()]
         column = index.column()
 
         if column == self.SELECT_COLUMN and role == Qt.ItemDataRole.CheckStateRole:
-            if cliente.id is None:
+            if asistente.id is None:
                 return QVariant(Qt.CheckState.Unchecked)
             return QVariant(
-                Qt.CheckState.Checked if cliente.id in self._selected_ids else Qt.CheckState.Unchecked
+                Qt.CheckState.Checked if asistente.id in self._selected_ids else Qt.CheckState.Unchecked
             )
 
         if role not in (Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.EditRole):
             return QVariant()
 
         values = {
-            1: cliente.rut,
-            2: cliente.nombre,
-            3: cliente.apellido,
-            4: cliente.email,
-            5: cliente.telefono,
+            1: asistente.nombre,
+            2: asistente.correo,
+            3: asistente.telefono,
+            4: asistente.edad,
+            5: asistente.ciudad_residencia,
+            6: asistente.tipo_asistente,
             self.ACTION_COLUMN: "Detalle",
         }
         value = values.get(column, "")
@@ -91,25 +93,25 @@ class ClienteTableModel(QAbstractTableModel):
         if role not in (Qt.ItemDataRole.CheckStateRole, Qt.ItemDataRole.EditRole):
             return False
 
-        cliente = self._clientes[index.row()]
-        if cliente.id is None:
+        asistente = self._asistentes[index.row()]
+        if asistente.id is None:
             return False
 
         state = Qt.CheckState(value)
         if state == Qt.CheckState.Checked:
-            self._selected_ids.add(cliente.id)
+            self._selected_ids.add(asistente.id)
         else:
-            self._selected_ids.discard(cliente.id)
+            self._selected_ids.discard(asistente.id)
 
         self.dataChanged.emit(index, index, [Qt.ItemDataRole.CheckStateRole])
         return True
 
-    def update_clientes(self, clientes: List[Cliente]) -> None:
+    def update_asistentes(self, asistentes: List[Asistente]) -> None:
         """Replace the internal list and notify views."""
 
         self.beginResetModel()
-        self._clientes = clientes
-        current_ids = {cliente.id for cliente in clientes if cliente.id is not None}
+        self._asistentes = asistentes
+        current_ids = {asistente.id for asistente in asistentes if asistente.id is not None}
         self._selected_ids.intersection_update(current_ids)
         self.endResetModel()
 
@@ -130,9 +132,9 @@ class ClienteTableModel(QAbstractTableModel):
         bottom_right = self.index(self.rowCount() - 1, self.SELECT_COLUMN)
         self.dataChanged.emit(top_left, bottom_right, [Qt.ItemDataRole.CheckStateRole])
 
-    def cliente_at(self, row: int) -> Cliente | None:
-        """Return cliente for the provided row."""
+    def asistente_at(self, row: int) -> Asistente | None:
+        """Return asistente for the provided row."""
 
-        if 0 <= row < len(self._clientes):
-            return self._clientes[row]
+        if 0 <= row < len(self._asistentes):
+            return self._asistentes[row]
         return None
