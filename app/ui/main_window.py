@@ -34,6 +34,7 @@ from app.domain.models.jurado import Jurado
 from app.domain.models.participacion_jurado import ParticipacionJurado
 from app.domain.models.evaluacion import Evaluacion
 from app.domain.models.premiacion import Premiacion
+from app.domain.models.proyeccion import Proyeccion
 from app.infrastructure.database.oracle_connection import OracleConnection
 from app.infrastructure.repositories.asistente_repository import AsistenteRepository
 from app.infrastructure.repositories.ciudad_repository import CiudadRepository
@@ -45,6 +46,7 @@ from app.infrastructure.repositories.jurado_repository import JuradoRepository
 from app.infrastructure.repositories.participacion_jurado_repository import ParticipacionJuradoRepository
 from app.infrastructure.repositories.evaluacion_repository import EvaluacionRepository
 from app.infrastructure.repositories.premiacion_repository import PremiacionRepository
+from app.infrastructure.repositories.proyeccion_repository import ProyeccionRepository
 from app.ui.asistente_table_model import AsistenteTableModel
 from app.ui.ciudad_table_model import CiudadTableModel
 from app.ui.sede_table_model import SedeTableModel
@@ -55,6 +57,7 @@ from app.ui.jurado_table_model import JuradoTableModel
 from app.ui.participacion_jurado_table_model import ParticipacionJuradoTableModel
 from app.ui.evaluacion_table_model import EvaluacionTableModel
 from app.ui.premiacion_table_model import PremiacionTableModel
+from app.ui.proyeccion_table_model import ProyeccionTableModel
 from app.ui.delegates import DetailButtonDelegate
 from app.ui.dialogs import (
     ClienteDetailDialog,
@@ -77,6 +80,8 @@ from app.ui.dialogs import (
     EvaluacionDetailDialog,
     PremiacionFormDialog,
     PremiacionDetailDialog,
+    ProyeccionFormDialog,
+    ProyeccionDetailDialog,
 )
 from app.viewmodels.asistente_viewmodel import AsistenteViewModel
 from app.viewmodels.ciudad_viewmodel import CiudadViewModel
@@ -88,6 +93,7 @@ from app.viewmodels.jurado_viewmodel import JuradoViewModel
 from app.viewmodels.participacion_jurado_viewmodel import ParticipacionJuradoViewModel
 from app.viewmodels.evaluacion_viewmodel import EvaluacionViewModel
 from app.viewmodels.premiacion_viewmodel import PremiacionViewModel
+from app.viewmodels.proyeccion_viewmodel import ProyeccionViewModel
 
 
 class MainWindow(QMainWindow):
@@ -198,7 +204,8 @@ class MainWindow(QMainWindow):
             ("JURADOS", "jurado", 3, 0),
             ("PARTICIPACIONES", "participacion_jurado", 3, 1),
             ("EVALUACIONES", "evaluacion", 4, 0),
-            ("PREMIACIONES", "premiacion", 4, 1),
+            ("PREMIACIONES", "premiacion", 4, 0),
+            ("PROYECCIONES", "proyeccion", 4, 1),
         ]
 
         for tabla_nombre, entity_key, row, col in tables:
@@ -289,6 +296,9 @@ class MainWindow(QMainWindow):
             elif self._entity == 'premiacion':
                 self._viewmodel.premiaciones_changed.connect(self._model.update_premiaciones)
                 refresh_action = getattr(self._viewmodel, 'load_premiaciones', None)
+            elif self._entity == 'proyeccion':
+                self._viewmodel.proyecciones_changed.connect(self._model.update_proyecciones)
+                refresh_action = getattr(self._viewmodel, 'load_proyecciones', None)
             else:
                 refresh_action = None
         except AttributeError:
@@ -523,6 +533,24 @@ class MainWindow(QMainWindow):
             if created:
                 self._model.clear_selection()
                 self.statusBar().showMessage("Premiación creada correctamente", 5000)
+        elif self._entity == 'proyeccion':
+            dialog = ProyeccionFormDialog(self)
+            if dialog.exec() != dialog.DialogCode.Accepted:
+                return
+            data = dialog.get_data()
+            proy = Proyeccion(
+                id_funcion=data["id_funcion"],
+                id_pelicula=data["id_pelicula"],
+                orden_proyeccion=data.get("orden_proyeccion", 1),
+                comentarios=data.get("comentarios", "Sin comentarios"),
+            )
+            if getattr(self._viewmodel, "add_proyeccion", None):
+                created = self._viewmodel.add_proyeccion(proy)
+            else:
+                created = False
+            if created:
+                self._model.clear_selection()
+                self.statusBar().showMessage("Proyección creada correctamente", 5000)
 
     def _handle_delete_selected(self) -> None:
         if self._entity is None or self._viewmodel is None or self._model is None:
@@ -622,6 +650,14 @@ class MainWindow(QMainWindow):
             if ok:
                 self._model.clear_selection()
                 self.statusBar().showMessage("Premiaciones eliminadas", 5000)
+        elif self._entity == 'proyeccion':
+            if getattr(self._viewmodel, "delete_proyecciones", None):
+                ok = self._viewmodel.delete_proyecciones(selected_ids)
+            else:
+                ok = False
+            if ok:
+                self._model.clear_selection()
+                self.statusBar().showMessage("Proyecciones eliminadas", 5000)
 
     def _show_detail_for_row(self, row: int) -> None:
         if self._entity is None or self._model is None:
@@ -687,6 +723,12 @@ class MainWindow(QMainWindow):
                 return
             dialog = PremiacionDetailDialog(premiacion, self)
             dialog.exec()
+        elif self._entity == 'proyeccion':
+            proy = self._model.proyeccion_at(row)
+            if not proy:
+                return
+            dialog = ProyeccionDetailDialog(proy, self)
+            dialog.exec()
 
     def _set_entity(self, entity: str) -> None:
         """Switch current managed entity to 'asistente', 'ciudad', 'sede', 'pelicula', 'funcion', 'asistencia', or 'jurado'."""
@@ -742,6 +784,11 @@ class MainWindow(QMainWindow):
             self._viewmodel = PremiacionViewModel(repository)
             self._model = PremiacionTableModel()
             title_suffix = "Premiaciones"
+        elif entity == 'proyeccion':
+            repository = ProyeccionRepository(connection)
+            self._viewmodel = ProyeccionViewModel(repository)
+            self._model = ProyeccionTableModel()
+            title_suffix = "Proyecciones"
         else:
             raise ValueError(f"Unknown entity: {entity}")
 
@@ -812,6 +859,11 @@ class MainWindow(QMainWindow):
         elif entity == 'premiacion':
             try:
                 self._viewmodel.load_premiaciones()
+            except Exception:
+                pass
+        elif entity == 'proyeccion':
+            try:
+                self._viewmodel.load_proyecciones()
             except Exception:
                 pass
 

@@ -25,6 +25,8 @@ from app.domain.models.asistencia import Asistencia
 from app.domain.models.jurado import Jurado
 from app.domain.models.participacion_jurado import ParticipacionJurado
 from app.domain.models.premiacion import Premiacion
+from app.domain.models.proyeccion import Proyeccion
+from app.domain.models.proyeccion import Proyeccion
 
 EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
@@ -1049,4 +1051,96 @@ class PremiacionDetailDialog(QDialog):
         button_box.accepted.connect(self.accept)
         button_box.button(QDialogButtonBox.StandardButton.Close).clicked.connect(self.accept)
         layout.addWidget(button_box)
+
+
+class ProyeccionFormDialog(QDialog):
+    """Dialog to capture a new proyeccion entry."""
+
+    def __init__(self, parent=None) -> None:
+        super().__init__(parent)
+        self.setWindowTitle("Nueva Proyección")
+        self._build_ui()
+
+    def _build_ui(self) -> None:
+        layout = QVBoxLayout(self)
+        form_layout = QFormLayout()
+
+        self.id_funcion_input = QSpinBox()
+        self.id_funcion_input.setRange(1, 999999)
+        form_layout.addRow("ID Función", self.id_funcion_input)
+
+        self.id_pelicula_input = QSpinBox()
+        self.id_pelicula_input.setRange(1, 999999)
+        form_layout.addRow("ID Película", self.id_pelicula_input)
+
+        self.orden_input = QSpinBox()
+        self.orden_input.setRange(1, 9999)
+        self.orden_input.setValue(1)
+        form_layout.addRow("Orden de proyección", self.orden_input)
+
+        self.comentarios_input = QLineEdit()
+        self.comentarios_input.setPlaceholderText("Comentarios")
+        form_layout.addRow("Comentarios", self.comentarios_input)
+
+        layout.addLayout(form_layout)
+
+        self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        self.button_box.accepted.connect(self._on_accept)
+        self.button_box.rejected.connect(self.reject)
+        layout.addWidget(self.button_box)
+
+    def _on_accept(self) -> None:
+        error = self._validate_inputs()
+        if error:
+            QMessageBox.warning(self, "Validación", error)
+            return
+        self.accept()
+
+    def _validate_inputs(self) -> Optional[str]:
+        if self.id_funcion_input.value() < 1:
+            return "ID Función debe ser mayor a 0."
+        if self.id_pelicula_input.value() < 1:
+            return "ID Película debe ser mayor a 0."
+        if self.orden_input.value() < 1:
+            return "Orden debe ser mayor a 0."
+        return None
+
+    def get_data(self) -> Dict[str, object]:
+        return {
+            "id_funcion": int(self.id_funcion_input.value()),
+            "id_pelicula": int(self.id_pelicula_input.value()),
+            "orden_proyeccion": int(self.orden_input.value()),
+            "comentarios": self.comentarios_input.text().strip() or "Sin comentarios",
+        }
+
+
+class ProyeccionDetailDialog(QDialog):
+    """Displays persisted information for a proyeccion."""
+
+    def __init__(self, proyeccion: 'Proyeccion', parent=None) -> None:
+        super().__init__(parent)
+        self._proyeccion = proyeccion
+        self.setWindowTitle(f"Detalle de Proyección ({proyeccion.id_funcion}, {proyeccion.id_pelicula})")
+        self._build_ui()
+
+    def _build_ui(self) -> None:
+        layout = QVBoxLayout(self)
+        form_layout = QFormLayout()
+
+        def add_row(label: str, value: str) -> None:
+            form_layout.addRow(label, QLabel(value))
+
+        add_row("ID Función", str(self._proyeccion.id_funcion or ""))
+        add_row("ID Película", str(self._proyeccion.id_pelicula or ""))
+        add_row("Orden de proyección", str(self._proyeccion.orden_proyeccion or ""))
+        add_row("Comentarios", self._proyeccion.comentarios or "")
+
+        layout.addLayout(form_layout)
+
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+        button_box.rejected.connect(self.reject)
+        button_box.accepted.connect(self.accept)
+        button_box.button(QDialogButtonBox.StandardButton.Close).clicked.connect(self.accept)
+        layout.addWidget(button_box)
+
 
