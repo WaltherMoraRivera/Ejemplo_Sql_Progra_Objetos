@@ -194,29 +194,50 @@ class MainWindow(QMainWindow):
         button_layout.setSpacing(20)
 
         # Define tables: (nombre, entity_key, row, col)
+        # Layout: 6 rows x 2 cols = 12 buttons (11 tables + 1 close button)
+        # Button order adjusted to user's required sequence:
+        # 1 Ciudad, 2 Sede, 3 Pelicula, 4 Funcion, 5 Proyeccion,
+        # 6 Asistente, 7 Asistencia, 8 Jurado, 9 Participacion_Jurado,
+        # 10 Evaluacion, 11 Premiacion, 12 Cerrar App
         tables = [
-            ("ASISTENTES", "asistente", 0, 0),
-            ("CIUDADES", "ciudad", 0, 1),
-            ("SEDES", "sede", 1, 0),
-            ("PELÍCULAS", "pelicula", 1, 1),
-            ("FUNCIONES", "funcion", 2, 0),
-            ("ASISTENCIAS", "asistencia", 2, 1),
-            ("JURADOS", "jurado", 3, 0),
-            ("PARTICIPACIONES", "participacion_jurado", 3, 1),
-            ("EVALUACIONES", "evaluacion", 4, 0),
-            ("PREMIACIONES", "premiacion", 4, 0),
-            ("PROYECCIONES", "proyeccion", 4, 1),
+            ("CIUDADES", "ciudad", 0, 0),
+            ("SEDES", "sede", 0, 1),
+            ("PELÍCULAS", "pelicula", 1, 0),
+            ("FUNCIONES", "funcion", 1, 1),
+            ("PROYECCIONES", "proyeccion", 2, 0),
+            ("ASISTENTES", "asistente", 2, 1),
+            ("ASISTENCIAS", "asistencia", 3, 0),
+            ("JURADOS", "jurado", 3, 1),
+            ("PARTICIPACIONES", "participacion_jurado", 4, 0),
+            ("EVALUACIONES", "evaluacion", 4, 1),
+            ("PREMIACIONES", "premiacion", 5, 0),
         ]
 
+        # Smaller buttons so the 12-button grid fits nicely
         for tabla_nombre, entity_key, row, col in tables:
             btn = QPushButton(tabla_nombre)
-            btn.setMinimumSize(200, 100)
+            btn.setMinimumSize(180, 80)
+            btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
             btn_font = btn.font()
-            btn_font.setPointSize(12)
+            btn_font.setPointSize(11)
             btn_font.setBold(True)
             btn.setFont(btn_font)
             btn.clicked.connect(lambda checked, ek=entity_key: self._set_entity(ek))
             button_layout.addWidget(btn, row, col)
+
+        # Add the symmetric 12th button: CERRAR APP (red background, white text)
+        close_btn = QPushButton("CERRAR APP")
+        close_btn.setMinimumSize(180, 80)
+        close_btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        close_font = close_btn.font()
+        close_font.setPointSize(11)
+        close_font.setBold(True)
+        close_btn.setFont(close_font)
+        # Red background, white text
+        close_btn.setStyleSheet("background-color: #c0392b; color: white;")
+        close_btn.clicked.connect(self.close)
+        # place at final row, second column
+        button_layout.addWidget(close_btn, 5, 1)
 
         layout.addLayout(button_layout)
         layout.addStretch()
